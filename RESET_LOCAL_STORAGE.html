@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resetear Datos - MayBelen</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            max-width: 500px;
+            text-align: center;
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        p {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        .success {
+            display: none;
+            color: #10b981;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎀 Resetear Datos MayBelen</h1>
+        <p>
+            Este botón borrará todos los productos, categorías y tipos guardados en el navegador
+            y restaurará los productos correctos de Hello Kitty del archivo Excel.
+        </p>
+        <p style="color: #e11d48; font-weight: bold;">
+            ⚠️ Esta acción NO se puede deshacer
+        </p>
+        <button onclick="resetStorage()">Resetear Datos</button>
+        <div class="success" id="success">
+            ✅ ¡Datos reseteados correctamente! Ahora puedes cerrar esta ventana y refrescar la tienda.
+        </div>
+    </div>
+
+    <script>
+        function resetStorage() {
+            // Borrar los datos actuales
+            localStorage.removeItem('products');
+            localStorage.removeItem('categories');
+            localStorage.removeItem('types');
+            
+            // Mostrar mensaje de éxito
+            document.getElementById('success').style.display = 'block';
+            
+            console.log('✅ LocalStorage limpiado. Los productos correctos se cargarán la próxima vez que abras la aplicación.');
+        }
+    </script>
+</body>
+</html>
