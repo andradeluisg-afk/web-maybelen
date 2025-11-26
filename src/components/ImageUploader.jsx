@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Upload, X, Image as ImageIcon } from 'lucide-react';
+import { resizeImage } from '../utils/imageUtils';
 
 export default function ImageUploader({ images = [], onImagesChange, maxImages = 4 }) {
     const [previews, setPreviews] = useState(images);
+    const [isProcessing, setIsProcessing] = useState(false);
 
-    const handleFileSelect = (e) => {
+    const handleFileSelect = async (e) => {
         const files = Array.from(e.target.files);
         const validFiles = files.filter(file =>
             file.type === 'image/png' || file.type === 'image/jpeg' || file.type === 'image/jpg'
@@ -15,15 +17,33 @@ export default function ImageUploader({ images = [], onImagesChange, maxImages =
             return;
         }
 
-        validFiles.forEach(file => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const newPreviews = [...previews, reader.result];
-                setPreviews(newPreviews);
-                onImagesChange(newPreviews);
-            };
-            reader.readAsDataURL(file);
-        });
+        setIsProcessing(true);
+
+        try {
+            const processedImages = [];
+
+            for (const file of validFiles) {
+                const reader = new FileReader();
+
+                const base64 = await new Promise((resolve) => {
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.readAsDataURL(file);
+                });
+
+                // Redimensionar imagen a máximo 600px manteniendo proporción
+                const resized = await resizeImage(base64, 600);
+                processedImages.push(resized);
+            }
+
+            const newPreviews = [...previews, ...processedImages];
+            setPreviews(newPreviews);
+            onImagesChange(newPreviews);
+        } catch (error) {
+            console.error('Error procesando imágenes:', error);
+            alert('Error al procesar las imágenes. Intenta de nuevo.');
+        } finally {
+            setIsProcessing(false);
+        }
     };
 
     const handleRemove = (index) => {
@@ -134,13 +154,16 @@ export default function ImageUploader({ images = [], onImagesChange, maxImages =
                         }}
                     >
                         <Upload size={24} style={{ marginBottom: '0.5rem' }} />
-                        <span style={{ fontSize: '0.75rem', textAlign: 'center' }}>Agregar Foto</span>
+                        <span style={{ fontSize: '0.75rem', textAlign: 'center' }}>
+                            {isProcessing ? 'Procesando...' : 'Agregar Foto'}
+                        </span>
                         <input
                             type="file"
                             accept="image/png, image/jpeg, image/jpg"
                             onChange={handleFileSelect}
                             style={{ display: 'none' }}
                             multiple={previews.length + 1 < maxImages}
+                            disabled={isProcessing}
                         />
                     </label>
                 )}
@@ -152,7 +175,7 @@ export default function ImageUploader({ images = [], onImagesChange, maxImages =
                 marginTop: '0.5rem'
             }}>
                 <ImageIcon size={14} style={{ display: 'inline', marginRight: '0.25rem' }} />
-                Formatos: PNG, JPG • Máximo {maxImages} imágenes • La primera será la principal
+                Formatos: PNG, JPG • Máximo {maxImages} imágenes • Optimización automática a 600px
             </p>
         </div>
     );

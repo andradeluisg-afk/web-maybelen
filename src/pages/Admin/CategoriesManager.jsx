@@ -6,12 +6,17 @@ import '../../styles/CategoriesManager.css';
 
 export default function CategoriesManager() {
     const navigate = useNavigate();
-    const { categories, types, addCategory, updateCategory, deleteCategory, addType, updateType, deleteType } = useStore();
+    const { categories, types, products, addCategory, updateCategory, deleteCategory, addType, updateType, deleteType } = useStore();
     const [editingCategory, setEditingCategory] = useState(null);
     const [newCategoryName, setNewCategoryName] = useState('');
     const [editingType, setEditingType] = useState(null);
     const [newTypeName, setNewTypeName] = useState('');
     const [selectedCategory, setSelectedCategory] = useState(null);
+
+    // Contar productos por tipo
+    const countProductsByType = (category, type) => {
+        return products.filter(p => p.category === category && p.subcategory === type).length;
+    };
 
     const handleAddCategory = () => {
         if (newCategoryName.trim()) {
@@ -119,6 +124,17 @@ export default function CategoriesManager() {
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
+                                                    navigate(`/admin/dashboard?category=${encodeURIComponent(category)}`);
+                                                }}
+                                                className="btn-edit"
+                                                title="Ver Productos"
+                                                style={{ background: '#10b981' }}
+                                            >
+                                                <Package size={16} />
+                                            </button>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
                                                     setEditingCategory(category);
                                                 }}
                                                 className="btn-edit"
@@ -205,6 +221,17 @@ export default function CategoriesManager() {
                                             <>
                                                 <span className="item-name">{type}</span>
                                                 <div className="item-actions">
+                                                    <span className="item-count">
+                                                        {countProductsByType(selectedCategory, type)} productos
+                                                    </span>
+                                                    <button
+                                                        onClick={() => navigate(`/admin/dashboard?category=${encodeURIComponent(selectedCategory)}&subcategory=${encodeURIComponent(type)}`)}
+                                                        className="btn-edit"
+                                                        title="Ver Productos"
+                                                        style={{ background: '#10b981' }}
+                                                    >
+                                                        <Package size={16} />
+                                                    </button>
                                                     <button
                                                         onClick={() => setEditingType(type)}
                                                         className="btn-edit"

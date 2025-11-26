@@ -1,15 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link, useLocation } from 'react-router-dom';
 import { useStore } from '../../context/StoreContext';
-import { Plus, Search, Filter } from 'lucide-react';
+import { Plus, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import '../../styles/Store.css';
 
 export default function Home() {
     const { products, addToCart } = useStore();
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const location = useLocation();
     const [searchTerm, setSearchTerm] = useState('');
     const [filterType, setFilterType] = useState('all'); // 'all' | 'new'
     const [selectedCategory, setSelectedCategory] = useState('Todos');
+    const [sortBy, setSortBy] = useState('newest'); // 'newest', 'name', 'price-asc', 'price-desc', 'stock'
+    const [currentPage, setCurrentPage] = useState(1);
+    const productsPerPage = 20;
+
+    // Scroll to top cuando cambia la ruta o la página
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, [location.pathname, location.search, currentPage]);
 
     // Leer parámetros de la URL al cargar
     useEffect(() => {
@@ -25,6 +34,9 @@ export default function Home() {
         } else {
             setFilterType('all');
         }
+
+        // Reset pagination al cambiar filtros
+        setCurrentPage(1);
     }, [searchParams]);
 
     // Obtener categorías únicas con seguridad
@@ -38,7 +50,6 @@ export default function Home() {
     try {
         if (Array.isArray(products) && products.length > 0) {
             // Lógica para identificar productos nuevos (los últimos 20 IDs)
-            // Convertimos a Number para asegurar comparación numérica correcta
             const ids = products.map(p => Number(p?.id)).filter(n => !isNaN(n));
             const maxId = ids.length > 0 ? Math.max(...ids) : 0;
             newProductsThreshold = maxId - 20;
@@ -62,12 +73,39 @@ export default function Home() {
 
                 return matchesSearch && matchesCategory && matchesFilter;
             });
+
+            // Ordenar productos
+            filteredProducts.sort((a, b) => {
+                switch (sortBy) {
+                    case 'name':
+                        return a.name.localeCompare(b.name);
+                    case 'price-asc':
+                        return a.price - b.price;
+                    case 'price-desc':
+                        return b.price - a.price;
+                    case 'stock':
+                        return b.stock - a.stock;
+                    case 'newest':
+                    default:
+                        return b.id - a.id; // Asumiendo que IDs mayores = más nuevos
+                }
+            });
         }
     } catch (error) {
         console.error("Error filtrando productos:", error);
-        // Fallback de emergencia: mostrar todo si falla el filtro
         filteredProducts = Array.isArray(products) ? products : [];
     }
+
+    // Paginación
+    const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+    const startIndex = (currentPage - 1) * productsPerPage;
+    const endIndex = startIndex + productsPerPage;
+    const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
+
+    const handlePageChange = (newPage) => {
+        setCurrentPage(newPage);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
     return (
         <div className="store-page">
@@ -90,7 +128,6 @@ export default function Home() {
                                     setFilterType('all');
                                     setSearchTerm('');
                                     setSelectedCategory('Todos');
-                                    // Limpiar URL sin recargar
                                     window.history.pushState({}, '', '/tienda');
                                 }}
                                 className="btn"
@@ -122,10 +159,27 @@ export default function Home() {
                                 type="text"
                                 placeholder="Buscar productos..."
                                 value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onChange={(e) => {
+                                    setSearchTerm(e.target.value);
+                                    setCurrentPage(1); // Reset pagination al buscar
+                                }}
                                 className="search-input"
                             />
                         </div>
+
+                        {/* Sort Dropdown */}
+                        <select
+                            value={sortBy}
+                            onChange={(e) => setSortBy(e.target.value)}
+                            className="input"
+                            style={{ maxWidth: '200px', padding: '0.5rem' }}
+                        >
+                            <option value="newest">Más Recientes</option>
+                            <option value="name">Nombre (A-Z)</option>
+                            <option value="price-asc">Precio: Menor a Mayor</option>
+                            <option value="price-desc">Precio: Mayor a Menor</option>
+                            <option value="stock">Mayor Stock</option>
+                        </select>
 
                         {/* Category Filter */}
                         <div className="category-filters">
@@ -133,7 +187,10 @@ export default function Home() {
                                 <button
                                     key={category}
                                     className={`category-btn ${selectedCategory === category ? 'active' : ''}`}
-                                    onClick={() => setSelectedCategory(category)}
+                                    onClick={() => {
+                                        setSelectedCategory(category);
+                                        setCurrentPage(1);
+                                    }}
                                 >
                                     {category}
                                 </button>
@@ -146,14 +203,13 @@ export default function Home() {
             {/* Products Grid */}
             <div className="container">
                 <div className="products-count">
-                    {filteredProducts.length} producto{filteredProducts.length !== 1 ? 's' : ''} encontrado{filteredProducts.length !== 1 ? 's' : ''}
+                    Mostrando {startIndex + 1}-{Math.min(endIndex, filteredProducts.length)} de {filteredProducts.length} producto{filteredProducts.length !== 1 ? 's' : ''}
                 </div>
 
                 <div className="products-grid">
-                    {filteredProducts.map(product => {
+                    {paginatedProducts.map(product => {
                         if (!product) return null;
 
-                        // Determinar qué imagen mostrar: primera del array o la única antigua
                         const displayImage = (product.images && product.images.length > 0)
                             ? product.images[0]
                             : product.image;
@@ -174,7 +230,6 @@ export default function Home() {
                                             )}
                                         </div>
 
-                                        {/* Badges Container */}
                                         <div style={{ position: 'absolute', top: '10px', left: '10px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
                                             {isNew && (
                                                 <span className="badge" style={{ background: 'linear-gradient(45deg, #ff00cc, #333399)', color: 'white', padding: '4px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
@@ -221,7 +276,7 @@ export default function Home() {
                                     <button
                                         className="add-to-cart-btn"
                                         onClick={(e) => {
-                                            e.preventDefault(); // Evitar navegar al detalle al hacer clic en agregar
+                                            e.preventDefault();
                                             addToCart(product);
                                         }}
                                         disabled={product.stock === 0}
@@ -233,6 +288,58 @@ export default function Home() {
                         );
                     })}
                 </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: '1rem',
+                        marginTop: '3rem',
+                        marginBottom: '2rem'
+                    }}>
+                        <button
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className="btn btn-secondary"
+                            style={{
+                                opacity: currentPage === 1 ? 0.5 : 1,
+                                cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
+                            }}
+                        >
+                            <ChevronLeft size={20} /> Anterior
+                        </button>
+
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                <button
+                                    key={page}
+                                    onClick={() => handlePageChange(page)}
+                                    className={`btn ${page === currentPage ? 'btn-primary' : 'btn-secondary'}`}
+                                    style={{
+                                        minWidth: '40px',
+                                        padding: '0.5rem'
+                                    }}
+                                >
+                                    {page}
+                                </button>
+                            ))}
+                        </div>
+
+                        <button
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                            className="btn btn-secondary"
+                            style={{
+                                opacity: currentPage === totalPages ? 0.5 : 1,
+                                cursor: currentPage === totalPages ? 'not-allowed' : 'pointer'
+                            }}
+                        >
+                            Siguiente <ChevronRight size={20} />
+                        </button>
+                    </div>
+                )}
 
                 {filteredProducts.length === 0 && (
                     <div className="no-products">

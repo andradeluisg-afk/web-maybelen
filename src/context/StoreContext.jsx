@@ -351,43 +351,63 @@ export const StoreProvider = ({ children }) => {
   // ===== IMAGE MANAGEMENT =====
   const uploadProductImages = async (productId, images) => {
     try {
+      console.log(`📸 Iniciando upload de ${images.length} imágenes para producto ${productId}`);
+
       for (let i = 0; i < images.length; i++) {
         const imageBase64 = images[i];
+        console.log(`  ⬆️  Procesando imagen ${i + 1}/${images.length}...`);
 
         // Convertir base64 a blob
         const response = await fetch(imageBase64);
         const blob = await response.blob();
+        console.log(`    ✅ Blob creado: ${blob.size} bytes`);
 
         // Generar nombre único para la imagen
         const fileName = `${productId}_${i}_${Date.now()}.jpg`;
         const filePath = `${productId}/${fileName}`;
+        console.log(`    📂 Ruta: ${filePath}`);
 
         // Subir a Supabase Storage
-        const { error: uploadError } = await supabase.storage
+        const { data: uploadData, error: uploadError } = await supabase.storage
           .from('product-images')
           .upload(filePath, blob, {
             contentType: 'image/jpeg',
             upsert: true
           });
 
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          console.error(`    ❌ Error subiendo a Storage:`, uploadError);
+          throw uploadError;
+        }
+        console.log(`    ✅ Subido a Storage:`, uploadData);
 
         // Obtener URL pública de la imagen
         const { data: publicUrlData } = supabase.storage
           .from('product-images')
           .getPublicUrl(filePath);
 
+        console.log(`    🔗 URL pública:`, publicUrlData.publicUrl);
+
         // Guardar referencia en la tabla product_images
-        await supabase
+        const { data: insertData, error: insertError } = await supabase
           .from('product_images')
           .insert({
             product_id: productId,
             image_url: publicUrlData.publicUrl,
             position: i + 1
-          });
+          })
+          .select();
+
+        if (insertError) {
+          console.error(`    ❌ Error insertando en BD:`, insertError);
+          throw insertError;
+        }
+        console.log(`    ✅ Registrado en BD:`, insertData);
       }
+
+      console.log(`✅ ${images.length} imágenes subidas exitosamente`);
     } catch (error) {
-      console.error('Error subiendo imágenes:', error);
+      console.error('💥 Error subiendo imágenes:', error);
       throw error;
     }
   };
