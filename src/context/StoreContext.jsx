@@ -444,6 +444,48 @@ export const StoreProvider = ({ children }) => {
     setCart([]);
   };
 
+  const updateCategory = async (oldName, newName) => {
+    try {
+      const { error } = await supabase
+        .from('categories')
+        .update({ name: newName })
+        .eq('name', oldName);
+
+      if (error) throw error;
+
+      await loadInitialData();
+      return { success: true };
+    } catch (error) {
+      console.error('Error actualizando categoría:', error);
+      return { success: false, error: error.message };
+    }
+  };
+
+  const updateType = async (category, oldName, newName) => {
+    try {
+      // Obtener ID de la categoría
+      const { data: categoryData } = await supabase
+        .from('categories')
+        .select('id')
+        .eq('name', category)
+        .single();
+
+      const { error } = await supabase
+        .from('types')
+        .update({ name: newName })
+        .eq('category_id', categoryData.id)
+        .eq('name', oldName);
+
+      if (error) throw error;
+
+      await loadInitialData();
+      return { success: true };
+    } catch (error) {
+      console.error('Error actualizando tipo:', error);
+      return { success: false, error: error.message };
+    }
+  };
+
   const value = {
     products,
     categories,
@@ -453,8 +495,10 @@ export const StoreProvider = ({ children }) => {
     loading,
     setIsCartOpen,
     addCategory,
+    updateCategory,
     deleteCategory,
     addType,
+    updateType,
     deleteType,
     addProduct,
     updateProduct,

@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../context/StoreContext';
-import { Plus, Edit2, Trash2, Save, X, Package } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, X, Package, Check } from 'lucide-react';
 import '../../styles/CategoriesManager.css';
 
 export default function CategoriesManager() {
     const navigate = useNavigate();
     const { categories, types, products, addCategory, updateCategory, deleteCategory, addType, updateType, deleteType } = useStore();
     const [editingCategory, setEditingCategory] = useState(null);
+    const [editingCategoryValue, setEditingCategoryValue] = useState('');
     const [newCategoryName, setNewCategoryName] = useState('');
     const [editingType, setEditingType] = useState(null);
+    const [editingTypeValue, setEditingTypeValue] = useState('');
     const [newTypeName, setNewTypeName] = useState('');
     const [selectedCategory, setSelectedCategory] = useState(null);
 
@@ -25,11 +27,17 @@ export default function CategoriesManager() {
         }
     };
 
-    const handleUpdateCategory = (oldName, newName) => {
-        if (newName.trim() && newName !== oldName) {
-            updateCategory(oldName, newName.trim());
-            setEditingCategory(null);
+    const handleUpdateCategory = () => {
+        if (editingCategoryValue.trim() && editingCategoryValue !== editingCategory) {
+            updateCategory(editingCategory, editingCategoryValue.trim());
         }
+        setEditingCategory(null);
+        setEditingCategoryValue('');
+    };
+
+    const handleStartEditCategory = (category) => {
+        setEditingCategory(category);
+        setEditingCategoryValue(category);
     };
 
     const handleAddType = () => {
@@ -39,11 +47,17 @@ export default function CategoriesManager() {
         }
     };
 
-    const handleUpdateType = (category, oldName, newName) => {
-        if (newName.trim() && newName !== oldName) {
-            updateType(category, oldName, newName.trim());
-            setEditingType(null);
+    const handleUpdateType = () => {
+        if (editingTypeValue.trim() && editingTypeValue !== editingType) {
+            updateType(selectedCategory, editingType, editingTypeValue.trim());
         }
+        setEditingType(null);
+        setEditingTypeValue('');
+    };
+
+    const handleStartEditType = (type) => {
+        setEditingType(type);
+        setEditingTypeValue(type);
     };
 
     return (
@@ -94,11 +108,11 @@ export default function CategoriesManager() {
                                     <div className="editing-mode">
                                         <input
                                             type="text"
-                                            defaultValue={category}
-                                            onBlur={(e) => handleUpdateCategory(category, e.target.value)}
+                                            value={editingCategoryValue}
+                                            onChange={(e) => setEditingCategoryValue(e.target.value)}
                                             onKeyPress={(e) => {
                                                 if (e.key === 'Enter') {
-                                                    handleUpdateCategory(category, e.target.value);
+                                                    handleUpdateCategory();
                                                 }
                                             }}
                                             autoFocus
@@ -107,7 +121,19 @@ export default function CategoriesManager() {
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
+                                                handleUpdateCategory();
+                                            }}
+                                            className="btn-edit"
+                                            title="Guardar"
+                                            style={{ background: '#10b981' }}
+                                        >
+                                            <Check size={16} />
+                                        </button>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
                                                 setEditingCategory(null);
+                                                setEditingCategoryValue('');
                                             }}
                                             className="btn-cancel"
                                         >
@@ -135,7 +161,7 @@ export default function CategoriesManager() {
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    setEditingCategory(category);
+                                                    handleStartEditCategory(category);
                                                 }}
                                                 className="btn-edit"
                                                 title="Editar"
@@ -200,18 +226,29 @@ export default function CategoriesManager() {
                                             <div className="editing-mode">
                                                 <input
                                                     type="text"
-                                                    defaultValue={type}
-                                                    onBlur={(e) => handleUpdateType(selectedCategory, type, e.target.value)}
+                                                    value={editingTypeValue}
+                                                    onChange={(e) => setEditingTypeValue(e.target.value)}
                                                     onKeyPress={(e) => {
                                                         if (e.key === 'Enter') {
-                                                            handleUpdateType(selectedCategory, type, e.target.value);
+                                                            handleUpdateType();
                                                         }
                                                     }}
                                                     autoFocus
                                                     className="input-edit"
                                                 />
                                                 <button
-                                                    onClick={() => setEditingType(null)}
+                                                    onClick={() => handleUpdateType()}
+                                                    className="btn-edit"
+                                                    title="Guardar"
+                                                    style={{ background: '#10b981' }}
+                                                >
+                                                    <Check size={16} />
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        setEditingType(null);
+                                                        setEditingTypeValue('');
+                                                    }}
                                                     className="btn-cancel"
                                                 >
                                                     <X size={16} />
@@ -233,7 +270,7 @@ export default function CategoriesManager() {
                                                         <Package size={16} />
                                                     </button>
                                                     <button
-                                                        onClick={() => setEditingType(type)}
+                                                        onClick={() => handleStartEditType(type)}
                                                         className="btn-edit"
                                                         title="Editar"
                                                     >
