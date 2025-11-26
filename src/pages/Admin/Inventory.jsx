@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../../context/StoreContext';
 import { Plus, Edit2, Trash2, Save, X, Search, Settings } from 'lucide-react';
+import ImageUploader from '../../components/ImageUploader';
 
 export default function Inventory() {
     const { products, addProduct, updateProduct, deleteProduct, categories, types } = useStore();
@@ -19,7 +20,7 @@ export default function Inventory() {
         tax: 0,
         discount: 0,
         description: '',
-        image: null
+        images: []
     };
 
     const [formData, setFormData] = useState(initialFormState);
@@ -160,11 +161,10 @@ export default function Inventory() {
                         </div>
 
                         <div style={{ gridColumn: '1 / -1' }}>
-                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>URL de Imagen</label>
-                            <input
-                                className="input"
-                                value={formData.image}
-                                onChange={e => setFormData({ ...formData, image: e.target.value })}
+                            <ImageUploader
+                                images={formData.images || []}
+                                onImagesChange={(images) => setFormData({ ...formData, images })}
+                                maxImages={4}
                             />
                         </div>
                     </div>

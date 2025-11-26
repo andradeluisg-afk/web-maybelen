@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { useStore } from '../../context/StoreContext';
 import { Plus, Search, Filter } from 'lucide-react';
 import '../../styles/Store.css';
@@ -78,41 +78,50 @@ export default function Home() {
                 </div>
 
                 <div className="products-grid">
-                    {filteredProducts.map(product => (
-                        <div key={product.id} className="product-card">
-                            <div className="product-image-wrapper">
-                                <div className="product-image">
-                                    {product.image ? (
-                                        <img src={product.image} alt={product.name} />
-                                    ) : (
-                                        <div className="product-placeholder">
-                                            <span className="placeholder-emoji">🎀</span>
+                    {filteredProducts.map(product => {
+                        // Determinar qué imagen mostrar: primera del array o la única antigua
+                        const displayImage = (product.images && product.images.length > 0)
+                            ? product.images[0]
+                            : product.image;
+
+                        return (
+                            <div key={product.id} className="product-card">
+                                <Link to={`/product/${product.id}`} style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
+                                    <div className="product-image-wrapper">
+                                        <div className="product-image">
+                                            {displayImage ? (
+                                                <img src={displayImage} alt={product.name} />
+                                            ) : (
+                                                <div className="product-placeholder">
+                                                    <span className="placeholder-emoji">🎀</span>
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
-                                </div>
-                                {product.discount > 0 && (
-                                    <span className="discount-badge">
-                                        -{product.discount}%
-                                    </span>
-                                )}
-                                {product.stock < 5 && product.stock > 0 && (
-                                    <span className="stock-badge">
-                                        ¡Últimas {product.stock} unidades!
-                                    </span>
-                                )}
-                                {product.stock === 0 && (
-                                    <span className="out-of-stock-badge">
-                                        Agotado
-                                    </span>
-                                )}
-                            </div>
+                                        {product.discount > 0 && (
+                                            <span className="discount-badge">
+                                                -{product.discount}%
+                                            </span>
+                                        )}
+                                        {product.stock < 5 && product.stock > 0 && (
+                                            <span className="stock-badge">
+                                                ¡Últimas {product.stock} unidades!
+                                            </span>
+                                        )}
+                                        {product.stock === 0 && (
+                                            <span className="out-of-stock-badge">
+                                                Agotado
+                                            </span>
+                                        )}
+                                    </div>
 
-                            <div className="product-info">
-                                <div className="product-category">{product.category}</div>
-                                <h3 className="product-name">{product.name}</h3>
-                                <p className="product-description">{product.description}</p>
+                                    <div className="product-info">
+                                        <div className="product-category">{product.category}</div>
+                                        <h3 className="product-name">{product.name}</h3>
+                                        <p className="product-description">{product.description}</p>
+                                    </div>
+                                </Link>
 
-                                <div className="product-footer">
+                                <div className="product-footer" style={{ padding: '0 1.25rem 1.25rem' }}>
                                     <div className="product-pricing">
                                         <div className="product-price">
                                             ${(product.price * (1 - product.discount / 100)).toFixed(2)}
@@ -125,15 +134,18 @@ export default function Home() {
                                     </div>
                                     <button
                                         className="add-to-cart-btn"
-                                        onClick={() => addToCart(product)}
+                                        onClick={(e) => {
+                                            e.preventDefault(); // Evitar navegar al detalle al hacer clic en agregar
+                                            addToCart(product);
+                                        }}
                                         disabled={product.stock === 0}
                                     >
                                         <Plus size={20} />
                                     </button>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
 
                 {filteredProducts.length === 0 && (

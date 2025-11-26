@@ -9,6 +9,7 @@ import Footer from './components/Footer';
 // Pages
 import Landing from './pages/Landing';
 import Store from './pages/Store/Home';
+import ProductDetail from './pages/Store/ProductDetail';
 import AdminLogin from './pages/Admin/AdminLogin';
 import Inventory from './pages/Admin/Inventory';
 import CategoriesManager from './pages/Admin/CategoriesManager';
@@ -22,6 +23,7 @@ function App() {
             {/* Public Routes */}
             <Route path="/" element={<><Navbar /><Landing /></>} />
             <Route path="/tienda" element={<><Navbar /><CartDrawer /><Store /></>} />
+            <Route path="/product/:id" element={<><Navbar /><CartDrawer /><ProductDetail /></>} />
 
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminLogin />} />

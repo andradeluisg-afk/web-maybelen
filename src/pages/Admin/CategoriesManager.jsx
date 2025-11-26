@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../context/StoreContext';
-import { Plus, Edit2, Trash2, Save, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, X, Package } from 'lucide-react';
 import '../../styles/CategoriesManager.css';
 
 export default function CategoriesManager() {
+    const navigate = useNavigate();
     const { categories, types, addCategory, updateCategory, deleteCategory, addType, updateType, deleteType } = useStore();
     const [editingCategory, setEditingCategory] = useState(null);
     const [newCategoryName, setNewCategoryName] = useState('');
@@ -42,8 +44,18 @@ export default function CategoriesManager() {
     return (
         <div className="categories-manager">
             <div className="manager-header">
-                <h2>Gestión de Clasificaciones y Tipos</h2>
-                <p>Administra las categorías y subcategorías de tus productos</p>
+                <div>
+                    <h2>Gestión de Clasificaciones y Tipos</h2>
+                    <p>Administra las categorías y subcategorías de tus productos</p>
+                </div>
+                <button
+                    onClick={() => navigate('/admin/dashboard')}
+                    className="btn btn-primary"
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                >
+                    <Package size={20} />
+                    Gestionar Productos
+                </button>
             </div>
 
             <div className="manager-grid">
