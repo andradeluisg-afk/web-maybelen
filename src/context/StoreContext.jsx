@@ -1,196 +1,46 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { INITIAL_CATEGORIES, INITIAL_TYPES, INITIAL_PRODUCTS } from './initialData';
 
 const StoreContext = createContext();
 
-const INITIAL_CATEGORIES = ['Accesorios', 'Bisuteria', 'Papeleria'];
-
-const INITIAL_TYPES = {
-  'Accesorios': ['Bolso', 'Mochila', 'Gafas', 'Llavero', 'Delantal'],
-  'Bisuteria': ['Anillo', 'Collar', 'Pulsera', 'Aretes'],
-  'Papeleria': ['Resaltador', 'Libreta', 'Cuaderno']
-};
-
-const INITIAL_PRODUCTS = [
-  {
-    id: 1,
-    name: 'Bolso tela cubo rosa Hello Kitty',
-    description: 'Adorable bolso de tela en forma de cubo con diseño Hello Kitty en color rosa',
-    price: 8.00,
-    cost: 3.89,
-    stock: 5,
-    tax: 0,
-    discount: 0,
-    category: 'Accesorios',
-    subcategory: 'Bolso',
-    image: null
-  },
-  {
-    id: 2,
-    name: 'Bolso tela bandolera Hello Kitty',
-    description: 'Bolso bandolera de tela con estampado Hello Kitty, perfecto para el día a día',
-    price: 10.00,
-    cost: 5.60,
-    stock: 3,
-    tax: 0,
-    discount: 0,
-    category: 'Accesorios',
-    subcategory: 'Bolso',
-    image: null
-  },
-  {
-    id: 3,
-    name: 'Mochila Hello Kitty',
-    description: 'Mochila espaciosa con diseño Hello Kitty',
-    price: 12.00,
-    cost: 8.03,
-    stock: 3,
-    tax: 0,
-    discount: 0,
-    category: 'Accesorios',
-    subcategory: 'Mochila',
-    image: null
-  },
-  {
-    id: 4,
-    name: 'Gafas Niña Hello Kitty',
-    description: 'Gafas de sol para niña con motivo Hello Kitty',
-    price: 4.00,
-    cost: 1.78,
-    stock: 10,
-    tax: 0,
-    discount: 0,
-    category: 'Accesorios',
-    subcategory: 'Gafas',
-    image: null
-  },
-  {
-    id: 5,
-    name: 'Anillo resina',
-    description: 'Precioso anillo de resina con diseño kawaii',
-    price: 1.00,
-    cost: 0.30,
-    stock: 10,
-    tax: 0,
-    discount: 0,
-    category: 'Bisuteria',
-    subcategory: 'Anillo',
-    image: null
-  },
-  {
-    id: 6,
-    name: 'Llavero tipo peluche Hello Kitty',
-    description: 'Llavero en forma de peluche Hello Kitty, suave y adorable',
-    price: 3.50,
-    cost: 2.61,
-    stock: 15,
-    tax: 0,
-    discount: 0,
-    category: 'Accesorios',
-    subcategory: 'Llavero',
-    image: null
-  },
-  {
-    id: 7,
-    name: 'Resaltadores tipo crayon',
-    description: 'Set de resaltadores en forma de crayón, colores vibrantes',
-    price: 1.25,
-    cost: 0.63,
-    stock: 10,
-    tax: 0,
-    discount: 0,
-    category: 'Papeleria',
-    subcategory: 'Resaltador',
-    image: null
-  },
-  {
-    id: 8,
-    name: 'Bolso cuerina Mensajería Hello Kitty',
-    description: 'Bolso de cuerina estilo mensajero con diseño Hello Kitty',
-    price: 10.00,
-    cost: 4.80,
-    stock: 4,
-    tax: 0,
-    discount: 0,
-    category: 'Accesorios',
-    subcategory: 'Bolso',
-    image: null
-  },
-  {
-    id: 9,
-    name: 'Bolso impermeable bandolera Hello Kitty',
-    description: 'Bolso bandolera impermeable con diseño Hello Kitty, ideal para todo clima',
-    price: 12.00,
-    cost: 7.88,
-    stock: 2,
-    tax: 0,
-    discount: 0,
-    category: 'Accesorios',
-    subcategory: 'Bolso',
-    image: null
-  },
-  {
-    id: 10,
-    name: 'Anillo Mounstro',
-    description: 'Anillo con diseño de monstruito kawaii',
-    price: 1.00,
-    cost: 0.36,
-    stock: 20,
-    tax: 0,
-    discount: 0,
-    category: 'Bisuteria',
-    subcategory: 'Anillo',
-    image: null
-  },
-  {
-    id: 11,
-    name: 'Delantal Hello Kitty',
-    description: 'Delantal práctico con diseño Hello Kitty',
-    price: 7.00,
-    cost: 3.57,
-    stock: 8,
-    tax: 0,
-    discount: 0,
-    category: 'Accesorios',
-    subcategory: 'Delantal',
-    image: null
-  },
-  {
-    id: 12,
-    name: 'Resaltadores tipo crayon',
-    description: 'Set de resaltadores en forma de crayón, colores vibrantes',
-    price: 1.25,
-    cost: 0.63,
-    stock: 10,
-    tax: 0,
-    discount: 0,
-    category: 'Papeleria',
-    subcategory: 'Resaltador',
-    image: null
-  }
-];
+// Incrementa esto para forzar una actualización de datos en todos los clientes
+const DATA_VERSION = 'v2-excel-import';
 
 export const StoreProvider = ({ children }) => {
+  // Helper para inicializar datos con control de versiones
+  const initializeData = (key, initialValue) => {
+    const savedVersion = localStorage.getItem('dataVersion');
+    const savedData = localStorage.getItem(key);
+
+    // Si la versión cambió, forzamos el uso de los nuevos datos (Excel)
+    if (savedVersion !== DATA_VERSION) {
+      return initialValue;
+    }
+
+    return savedData ? JSON.parse(savedData) : initialValue;
+  };
+
   // Products
-  const [products, setProducts] = useState(() => {
-    const saved = localStorage.getItem('products');
-    return saved ? JSON.parse(saved) : INITIAL_PRODUCTS;
-  });
+  const [products, setProducts] = useState(() => initializeData('products', INITIAL_PRODUCTS));
 
   // Categories
-  const [categories, setCategories] = useState(() => {
-    const saved = localStorage.getItem('categories');
-    return saved ? JSON.parse(saved) : INITIAL_CATEGORIES;
-  });
+  const [categories, setCategories] = useState(() => initializeData('categories', INITIAL_CATEGORIES));
 
   // Types (subcategories)
-  const [types, setTypes] = useState(() => {
-    const saved = localStorage.getItem('types');
-    return saved ? JSON.parse(saved) : INITIAL_TYPES;
+  const [types, setTypes] = useState(() => initializeData('types', INITIAL_TYPES));
+
+  // Cart (El carrito sí lo mantenemos aunque cambie la versión de datos)
+  const [cart, setCart] = useState(() => {
+    const savedCart = localStorage.getItem('cart');
+    return savedCart ? JSON.parse(savedCart) : [];
   });
 
-  // Cart
-  const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+
+  // Guardar la versión actual
+  useEffect(() => {
+    localStorage.setItem('dataVersion', DATA_VERSION);
+  }, []);
 
   // Persist to localStorage
   useEffect(() => {
@@ -204,6 +54,10 @@ export const StoreProvider = ({ children }) => {
   useEffect(() => {
     localStorage.setItem('types', JSON.stringify(types));
   }, [types]);
+
+  useEffect(() => {
+    localStorage.setItem('cart', JSON.stringify(cart));
+  }, [cart]);
 
   // ===== CATEGORY MANAGEMENT =====
   const addCategory = (categoryName) => {

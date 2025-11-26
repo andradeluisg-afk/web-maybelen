@@ -88,7 +88,7 @@ export default function Navbar() {
                 {/* Center - Logo */}
                 <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: isScrolled ? '0.5rem' : '0.65rem', textDecoration: 'none', transition: 'all 0.3s ease' }}>
                     <img src={logo} alt="MayBelén Logo" style={{ height: isScrolled ? '28px' : '38px', objectFit: 'contain', transition: 'height 0.3s ease' }} />
-                    <span style={{ fontSize: isScrolled ? '1.1rem' : '1.35rem', fontWeight: '800', color: '#FF1493', transition: 'font-size 0.3s ease', fontFamily: 'var(--font-kawaii)' }}>MayBelen</span>
+                    <span style={{ fontSize: isScrolled ? '1.1rem' : '1.35rem', fontWeight: '800', color: '#FF1493', transition: 'font-size 0.3s ease', fontFamily: 'var(--font-heading)' }}>MayBelen</span>
                 </Link>
 
                 {/* Right Section - Navigation */}

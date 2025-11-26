@@ -10,6 +10,9 @@ import Footer from './components/Footer';
 import Landing from './pages/Landing';
 import Store from './pages/Store/Home';
 import ProductDetail from './pages/Store/ProductDetail';
+import OriginalProducts from './pages/Info/OriginalProducts';
+import ShippingInfo from './pages/Info/ShippingInfo';
+import CustomService from './pages/Info/CustomService';
 import AdminLogin from './pages/Admin/AdminLogin';
 import Inventory from './pages/Admin/Inventory';
 import CategoriesManager from './pages/Admin/CategoriesManager';
@@ -24,6 +27,11 @@ function App() {
             <Route path="/" element={<><Navbar /><Landing /></>} />
             <Route path="/tienda" element={<><Navbar /><CartDrawer /><Store /></>} />
             <Route path="/product/:id" element={<><Navbar /><CartDrawer /><ProductDetail /></>} />
+
+            {/* Info Pages */}
+            <Route path="/originales" element={<><Navbar /><OriginalProducts /></>} />
+            <Route path="/envios" element={<><Navbar /><ShippingInfo /></>} />
+            <Route path="/atencion" element={<><Navbar /><CustomService /></>} />
 
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminLogin />} />

@@ -52,11 +52,19 @@ export default function Footer() {
                             <h4 className="footer-subtitle">Categorías</h4>
                             <ul className="footer-links">
                                 {categories.length > 0 ? (
-                                    categories.map(category => (
-                                        <li key={category}>
-                                            <Link to={`/tienda?categoria=${category}`}>{category}</Link>
+                                    <>
+                                        {/* Mostrar solo las 3 categorías con más productos (o las primeras 3 si no hay conteo) */}
+                                        {categories.slice(0, 3).map(category => (
+                                            <li key={category}>
+                                                <Link to={`/tienda?categoria=${category}`}>{category}</Link>
+                                            </li>
+                                        ))}
+                                        <li>
+                                            <Link to="/tienda" style={{ fontWeight: 'bold', color: 'var(--primary)' }}>
+                                                Ver todas...
+                                            </Link>
                                         </li>
-                                    ))
+                                    </>
                                 ) : (
                                     <li className="text-muted">Cargando categorías...</li>
                                 )}

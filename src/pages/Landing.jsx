@@ -3,7 +3,25 @@ import { Link } from 'react-router-dom';
 import { ShoppingBag, Sparkles, Heart, Star } from 'lucide-react';
 import '../styles/Landing.css';
 
+import { useStore } from '../context/StoreContext';
+
 function Landing() {
+    const { categories, products } = useStore();
+
+    // Obtener una imagen representativa para cada categoría
+    const getCategoryImage = (category) => {
+        const product = products.find(p => p.category === category && (p.images?.length > 0 || p.image));
+        if (product) {
+            return product.images?.length > 0 ? product.images[0] : product.image;
+        }
+        return null;
+    };
+
+    // Filtrar categorías que tengan al menos un producto (opcional, pero recomendado)
+    const activeCategories = categories.filter(cat =>
+        products.some(p => p.category === cat)
+    );
+
     return (
         <div className="landing-page">
             {/* Hero Section */}
@@ -45,34 +63,37 @@ function Landing() {
             <section className="features-section">
                 <div className="container">
                     <div className="features-grid">
-                        <div className="feature-card">
+                        <Link to="/originales" className="feature-card interactive-card">
                             <div className="feature-icon">
                                 <Heart />
                             </div>
                             <h3>Productos Originales</h3>
-                            <p>Todos nuestros productos son 100% auténticos y de alta calidad</p>
-                        </div>
-                        <div className="feature-card">
+                            <p>Descubre nuestra garantía de autenticidad Sanrio y Disney</p>
+                        </Link>
+
+                        <Link to="/tienda?filter=new" className="feature-card interactive-card">
                             <div className="feature-icon">
                                 <Star />
                             </div>
                             <h3>Nuevas Colecciones</h3>
-                            <p>Actualizamos constantemente con los diseños más recientes</p>
-                        </div>
-                        <div className="feature-card">
+                            <p>¡Lo último en llegar! Mira las novedades antes que se agoten</p>
+                        </Link>
+
+                        <Link to="/envios" className="feature-card interactive-card">
                             <div className="feature-icon">
                                 <ShoppingBag />
                             </div>
                             <h3>Envíos Rápidos</h3>
-                            <p>Entrega rápida y segura a todo el país</p>
-                        </div>
-                        <div className="feature-card">
+                            <p>Entregas seguras y puntuales a todo el Ecuador por Servientrega</p>
+                        </Link>
+
+                        <Link to="/atencion" className="feature-card interactive-card">
                             <div className="feature-icon">
                                 <Sparkles />
                             </div>
                             <h3>Atención Personalizada</h3>
-                            <p>Te ayudamos a encontrar el producto perfecto para ti</p>
-                        </div>
+                            <p>Pedidos especiales y asesoría para encontrar tu regalo ideal</p>
+                        </Link>
                     </div>
                 </div>
             </section>
@@ -81,50 +102,33 @@ function Landing() {
             <section id="colecciones" className="collections-section">
                 <div className="container">
                     <div className="section-header">
-                        <h2 className="section-title">Nuestras Colecciones</h2>
+                        <h2 className="section-title">Nuestras Categorías</h2>
                         <p className="section-subtitle">Encuentra lo que tu corazón desea</p>
                     </div>
                     <div className="collections-grid">
-                        <Link to="/tienda?categoria=Accesorios" className="collection-card">
-                            <div className="collection-image">
-                                <div className="collection-overlay"></div>
-                                <span className="collection-emoji">👜</span>
-                            </div>
-                            <div className="collection-info">
-                                <h3>Accesorios</h3>
-                                <p>Bolsos, mochilas y más</p>
-                            </div>
-                        </Link>
-                        <Link to="/tienda?categoria=Bisuteria" className="collection-card">
-                            <div className="collection-image">
-                                <div className="collection-overlay"></div>
-                                <span className="collection-emoji">💍</span>
-                            </div>
-                            <div className="collection-info">
-                                <h3>Bisutería</h3>
-                                <p>Anillos, collares y aretes</p>
-                            </div>
-                        </Link>
-                        <Link to="/tienda?categoria=Papeleria" className="collection-card">
-                            <div className="collection-image">
-                                <div className="collection-overlay"></div>
-                                <span className="collection-emoji">📚</span>
-                            </div>
-                            <div className="collection-info">
-                                <h3>Papelería</h3>
-                                <p>Libreta, stickers y más</p>
-                            </div>
-                        </Link>
-                        <Link to="/tienda?categoria=Peluches" className="collection-card">
-                            <div className="collection-image">
-                                <div className="collection-overlay"></div>
-                                <span className="collection-emoji">🧸</span>
-                            </div>
-                            <div className="collection-info">
-                                <h3>Peluches</h3>
-                                <p>Suaves y adorables</p>
-                            </div>
-                        </Link>
+                        {activeCategories.map(category => {
+                            const image = getCategoryImage(category);
+                            return (
+                                <Link key={category} to={`/tienda?categoria=${category}`} className="collection-card">
+                                    <div className="collection-image">
+                                        <div className="collection-overlay"></div>
+                                        {image ? (
+                                            <img
+                                                src={image}
+                                                alt={category}
+                                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                            />
+                                        ) : (
+                                            <span className="collection-emoji">🎀</span>
+                                        )}
+                                    </div>
+                                    <div className="collection-info">
+                                        <h3>{category}</h3>
+                                        <p>Ver productos</p>
+                                    </div>
+                                </Link>
+                            );
+                        })}
                     </div>
                 </div>
             </section>

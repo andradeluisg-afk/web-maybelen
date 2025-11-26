@@ -8,34 +8,106 @@ export default function Home() {
     const { products, addToCart } = useStore();
     const [searchParams] = useSearchParams();
     const [searchTerm, setSearchTerm] = useState('');
+    const [filterType, setFilterType] = useState('all'); // 'all' | 'new'
     const [selectedCategory, setSelectedCategory] = useState('Todos');
 
-    // Leer categoría de la URL al cargar
+    // Leer parámetros de la URL al cargar
     useEffect(() => {
         const categoria = searchParams.get('categoria');
+        const filter = searchParams.get('filter');
+
         if (categoria) {
             setSelectedCategory(categoria);
         }
+
+        if (filter === 'new') {
+            setFilterType('new');
+        } else {
+            setFilterType('all');
+        }
     }, [searchParams]);
 
-    // Obtener categorías únicas
-    const categories = ['Todos', ...new Set(products.map(p => p.category))];
+    // Obtener categorías únicas con seguridad
+    const categories = Array.isArray(products)
+        ? ['Todos', ...new Set(products.map(p => p?.category).filter(Boolean))]
+        : ['Todos'];
 
-    // Filtrar productos
-    const filteredProducts = products.filter(product => {
-        const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            product.description.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesCategory = selectedCategory === 'Todos' || product.category === selectedCategory;
-        return matchesSearch && matchesCategory;
-    });
+    let filteredProducts = [];
+    let newProductsThreshold = 0;
+
+    try {
+        if (Array.isArray(products) && products.length > 0) {
+            // Lógica para identificar productos nuevos (los últimos 20 IDs)
+            // Convertimos a Number para asegurar comparación numérica correcta
+            const ids = products.map(p => Number(p?.id)).filter(n => !isNaN(n));
+            const maxId = ids.length > 0 ? Math.max(...ids) : 0;
+            newProductsThreshold = maxId - 20;
+
+            // Filtrar productos
+            filteredProducts = products.filter(product => {
+                if (!product) return false;
+
+                const name = product.name || '';
+                const description = product.description || '';
+                const category = product.category || 'Otros';
+
+                const matchesSearch = name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    description.toLowerCase().includes(searchTerm.toLowerCase());
+
+                const matchesCategory = selectedCategory === 'Todos' || category === selectedCategory;
+
+                // Filtro de "Nuevos"
+                const productId = Number(product.id);
+                const matchesFilter = filterType === 'new' ? productId > newProductsThreshold : true;
+
+                return matchesSearch && matchesCategory && matchesFilter;
+            });
+        }
+    } catch (error) {
+        console.error("Error filtrando productos:", error);
+        // Fallback de emergencia: mostrar todo si falla el filtro
+        filteredProducts = Array.isArray(products) ? products : [];
+    }
 
     return (
         <div className="store-page">
             {/* Header */}
             <div className="store-header">
                 <div className="container">
-                    <h1 className="store-title">Tienda MayBelen 🎀</h1>
-                    <p className="store-subtitle">Descubre nuestra adorable colección de productos Hello Kitty</p>
+                    <h1 className="store-title">
+                        {filterType === 'new' ? '✨ Nuevas Colecciones ✨' : 'Tienda MayBelen 🎀'}
+                    </h1>
+                    <p className="store-subtitle">
+                        {filterType === 'new'
+                            ? 'Lo último en llegar, ¡corre que se acaban!'
+                            : 'Descubre nuestra adorable colección de productos Hello Kitty'}
+                    </p>
+
+                    {filterType === 'new' && (
+                        <div style={{ marginTop: '1.5rem' }}>
+                            <button
+                                onClick={() => {
+                                    setFilterType('all');
+                                    setSearchTerm('');
+                                    setSelectedCategory('Todos');
+                                    // Limpiar URL sin recargar
+                                    window.history.pushState({}, '', '/tienda');
+                                }}
+                                className="btn"
+                                style={{
+                                    background: 'white',
+                                    color: 'var(--primary)',
+                                    fontWeight: 'bold',
+                                    padding: '0.8rem 2rem',
+                                    borderRadius: '50px',
+                                    boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+                                    fontSize: '1.1rem'
+                                }}
+                            >
+                                🎀 Ver Todo el Catálogo
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -79,10 +151,14 @@ export default function Home() {
 
                 <div className="products-grid">
                     {filteredProducts.map(product => {
+                        if (!product) return null;
+
                         // Determinar qué imagen mostrar: primera del array o la única antigua
                         const displayImage = (product.images && product.images.length > 0)
                             ? product.images[0]
                             : product.image;
+
+                        const isNew = Number(product.id) > newProductsThreshold;
 
                         return (
                             <div key={product.id} className="product-card">
@@ -97,11 +173,21 @@ export default function Home() {
                                                 </div>
                                             )}
                                         </div>
-                                        {product.discount > 0 && (
-                                            <span className="discount-badge">
-                                                -{product.discount}%
-                                            </span>
-                                        )}
+
+                                        {/* Badges Container */}
+                                        <div style={{ position: 'absolute', top: '10px', left: '10px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                            {isNew && (
+                                                <span className="badge" style={{ background: 'linear-gradient(45deg, #ff00cc, #333399)', color: 'white', padding: '4px 8px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
+                                                    NUEVO
+                                                </span>
+                                            )}
+                                            {product.discount > 0 && (
+                                                <span className="discount-badge" style={{ position: 'static' }}>
+                                                    -{product.discount}%
+                                                </span>
+                                            )}
+                                        </div>
+
                                         {product.stock < 5 && product.stock > 0 && (
                                             <span className="stock-badge">
                                                 ¡Últimas {product.stock} unidades!

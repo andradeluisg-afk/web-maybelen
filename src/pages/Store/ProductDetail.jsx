@@ -67,9 +67,9 @@ export default function ProductDetail() {
                 <ArrowLeft size={20} /> Volver a la tienda
             </button>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '3rem' }}>
+            <div className="product-detail-grid">
                 {/* Columna Izquierda: Imágenes */}
-                <div>
+                <div style={{ minWidth: 0 }}> {/* minWidth: 0 ayuda a prevenir desbordamientos en grid flex items */}
                     <ImageCarousel images={productImages} productName={product.name} />
                 </div>
 
