@@ -249,9 +249,31 @@ export default function Home() {
                                             </span>
                                         )}
                                         {product.stock === 0 && (
-                                            <span className="out-of-stock-badge">
-                                                Agotado
-                                            </span>
+                                            <div style={{
+                                                position: 'absolute',
+                                                inset: 0,
+                                                background: 'rgba(255,255,255,0.6)',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                zIndex: 10,
+                                                backdropFilter: 'blur(2px)'
+                                            }}>
+                                                <div style={{
+                                                    background: '#ef4444',
+                                                    color: 'white',
+                                                    padding: '0.5rem 1.5rem',
+                                                    fontWeight: '900',
+                                                    textTransform: 'uppercase',
+                                                    transform: 'rotate(-15deg)',
+                                                    border: '3px solid white',
+                                                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                                                    fontSize: '1.2rem',
+                                                    letterSpacing: '1px'
+                                                }}>
+                                                    AGOTADO
+                                                </div>
+                                            </div>
                                         )}
                                     </div>
 
@@ -280,8 +302,9 @@ export default function Home() {
                                             addToCart(product);
                                         }}
                                         disabled={product.stock === 0}
+                                        style={product.stock === 0 ? { background: '#e2e8f0', color: '#94a3b8', cursor: 'not-allowed', transform: 'none', boxShadow: 'none', width: 'auto', padding: '0.5rem 1rem', fontSize: '0.9rem' } : {}}
                                     >
-                                        <Plus size={20} />
+                                        {product.stock === 0 ? 'Agotado' : <Plus size={20} />}
                                     </button>
                                 </div>
                             </div>

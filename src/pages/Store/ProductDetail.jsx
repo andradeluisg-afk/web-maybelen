@@ -69,8 +69,36 @@ export default function ProductDetail() {
 
             <div className="product-detail-grid">
                 {/* Columna Izquierda: Imágenes */}
-                <div style={{ minWidth: 0 }}> {/* minWidth: 0 ayuda a prevenir desbordamientos en grid flex items */}
+                <div style={{ minWidth: 0, position: 'relative' }}> {/* minWidth: 0 ayuda a prevenir desbordamientos en grid flex items */}
                     <ImageCarousel images={productImages} productName={product.name} />
+                    {product.stock === 0 && (
+                        <div style={{
+                            position: 'absolute',
+                            inset: 0,
+                            background: 'rgba(255,255,255,0.6)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            zIndex: 20,
+                            backdropFilter: 'blur(2px)',
+                            pointerEvents: 'none'
+                        }}>
+                            <div style={{
+                                background: '#ef4444',
+                                color: 'white',
+                                padding: '1rem 3rem',
+                                fontWeight: '900',
+                                textTransform: 'uppercase',
+                                transform: 'rotate(-15deg)',
+                                border: '4px solid white',
+                                boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+                                fontSize: '2rem',
+                                letterSpacing: '2px'
+                            }}>
+                                AGOTADO
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Columna Derecha: Información */}
@@ -149,12 +177,27 @@ export default function ProductDetail() {
                                     style={{ width: '100%', padding: '1rem', fontSize: '1.1rem', justifyContent: 'center' }}
                                     onClick={handleAddToCart}
                                 >
-                                    <ShoppingCart size={24} /> Agregar al Carrito
+                                    <ShoppingCart size={20} /> Añadir al Carrito
                                 </button>
                             </div>
                         ) : (
-                            <button className="btn btn-secondary" disabled style={{ width: '100%', justifyContent: 'center' }}>
-                                No disponible
+                            <button
+                                className="btn"
+                                disabled
+                                style={{
+                                    width: '100%',
+                                    padding: '1rem',
+                                    fontSize: '1.1rem',
+                                    justifyContent: 'center',
+                                    background: '#e2e8f0',
+                                    color: '#94a3b8',
+                                    cursor: 'not-allowed',
+                                    fontWeight: '700',
+                                    border: 'none',
+                                    borderRadius: '8px'
+                                }}
+                            >
+                                Producto Agotado
                             </button>
                         )}
                     </div>

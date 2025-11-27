@@ -23,7 +23,31 @@ export default function OrdersManager() {
         loadOrders();
     }, [filterStatus]);
 
-    // ... (loadOrders y handleStatusChange se mantienen igual)
+    const loadOrders = async () => {
+        setLoading(true);
+        const status = filterStatus === 'all' ? null : filterStatus;
+        const { success, orders: data } = await getOrders(status);
+        if (success) {
+            setOrders(data);
+        }
+        setLoading(false);
+    };
+
+    const handleStatusChange = async (orderId, newStatus) => {
+        if (!window.confirm(`¿Estás seguro de cambiar el estado a ${newStatus}?`)) return;
+
+        const reduceStock = newStatus === 'confirmed';
+        const { success, error } = await updateOrderStatus(orderId, newStatus, reduceStock);
+
+        if (success) {
+            loadOrders();
+            if (newStatus === 'confirmed') {
+                alert('Pedido confirmado y stock actualizado exitosamente.');
+            }
+        } else {
+            alert('Error actualizando el pedido: ' + error);
+        }
+    };
 
     const startEditing = (order) => {
         setEditingOrderId(order.id);
@@ -41,10 +65,25 @@ export default function OrdersManager() {
         setShowAddProduct(false);
     };
 
-    // ... (handleQuantityChange y handleRemoveItem se mantienen igual)
+    const handleQuantityChange = (index, newQuantity) => {
+        if (newQuantity < 1) return;
+        const newItems = [...editedItems];
+        newItems[index].quantity = newQuantity;
+        newItems[index].subtotal = newItems[index].unit_price * newQuantity;
+        setEditedItems(newItems);
+    };
+
+    const handleRemoveItem = (index) => {
+        if (window.confirm('¿Eliminar este producto del pedido?')) {
+            const newItems = editedItems.filter((_, i) => i !== index);
+            setEditedItems(newItems);
+        }
+    };
 
     // Lógica de búsqueda de productos
     useEffect(() => {
+        if (!products) return; // Protección contra null/undefined
+
         if (searchTerm.trim().length > 1) {
             const results = products.filter(p =>
                 p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -79,21 +118,6 @@ export default function OrdersManager() {
         setSearchTerm('');
         setSearchResults([]);
         setShowAddProduct(false);
-    };
-
-    const handleQuantityChange = (index, newQuantity) => {
-        if (newQuantity < 1) return;
-        const newItems = [...editedItems];
-        newItems[index].quantity = newQuantity;
-        newItems[index].subtotal = newItems[index].unit_price * newQuantity;
-        setEditedItems(newItems);
-    };
-
-    const handleRemoveItem = (index) => {
-        if (window.confirm('¿Eliminar este producto del pedido?')) {
-            const newItems = editedItems.filter((_, i) => i !== index);
-            setEditedItems(newItems);
-        }
     };
 
     const saveChanges = async () => {
