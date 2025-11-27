@@ -624,6 +624,51 @@ export const StoreProvider = ({ children }) => {
     }
   };
 
+  const updateOrderItems = async (orderId, newItems) => {
+    try {
+      // 1. Calcular nuevo total
+      const newTotal = newItems.reduce((sum, item) => sum + item.subtotal, 0);
+
+      // 2. Actualizar total en la orden
+      const { error: orderError } = await supabase
+        .from('orders')
+        .update({ total: newTotal })
+        .eq('id', orderId);
+
+      if (orderError) throw orderError;
+
+      // 3. Eliminar items antiguos
+      const { error: deleteError } = await supabase
+        .from('order_items')
+        .delete()
+        .eq('order_id', orderId);
+
+      if (deleteError) throw deleteError;
+
+      // 4. Insertar nuevos items
+      const itemsToInsert = newItems.map(item => ({
+        order_id: orderId,
+        product_id: item.product_id,
+        product_name: item.product_name,
+        product_image: item.product_image,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        subtotal: item.subtotal
+      }));
+
+      const { error: insertError } = await supabase
+        .from('order_items')
+        .insert(itemsToInsert);
+
+      if (insertError) throw insertError;
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error actualizando items del pedido:', error);
+      return { success: false, error: error.message };
+    }
+  };
+
   const value = {
     products,
     categories,
@@ -648,6 +693,7 @@ export const StoreProvider = ({ children }) => {
     createOrder,
     getOrders,
     updateOrderStatus,
+    updateOrderItems,
     refreshData: loadInitialData
   };
 
