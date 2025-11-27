@@ -9,7 +9,9 @@ export default function Footer() {
     const currentYear = new Date().getFullYear();
 
     const handleWhatsApp = () => {
-        window.open('https://wa.me/593984413528', '_blank');
+        const message = 'Hola! Me interesa conocer más sobre tus productos. ¿Podrías ayudarme con más información?';
+        const encodedMessage = encodeURIComponent(message);
+        window.open(`https://wa.me/593984413528?text=${encodedMessage}`, '_blank');
     };
 
     return (

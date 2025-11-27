@@ -2,6 +2,12 @@ import React from 'react';
 import { MessageCircle, Gift, HeartHandshake, Phone } from 'lucide-react';
 
 export default function CustomService() {
+    const handleWhatsApp = () => {
+        const message = 'Hola! Me interesa conocer más sobre tus productos. ¿Podrías ayudarme con más información?';
+        const encodedMessage = encodeURIComponent(message);
+        window.open(`https://wa.me/593984413528?text=${encodedMessage}`, '_blank');
+    };
+
     return (
         <div className="container" style={{ padding: '4rem 1.5rem' }}>
             <div style={{ maxWidth: '800px', margin: '0 auto' }}>
@@ -57,7 +63,11 @@ export default function CustomService() {
 
                 <div style={{ marginTop: '4rem', textAlign: 'center', background: 'var(--surface)', padding: '3rem', borderRadius: '24px', border: '2px dashed var(--primary)' }}>
                     <h3 style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>¿Listo para chatear?</h3>
-                    <button className="btn btn-primary" style={{ fontSize: '1.2rem', padding: '1rem 2rem', borderRadius: '50px' }}>
+                    <button
+                        onClick={handleWhatsApp}
+                        className="btn btn-primary"
+                        style={{ fontSize: '1.2rem', padding: '1rem 2rem', borderRadius: '50px' }}
+                    >
                         <Phone size={24} /> Contáctanos por WhatsApp
                     </button>
                     <p style={{ marginTop: '1rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
