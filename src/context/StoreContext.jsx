@@ -415,6 +415,14 @@ export const StoreProvider = ({ children }) => {
   // ===== CART MANAGEMENT =====
   const addToCart = (product) => {
     const existingItem = cart.find(item => item.id === product.id);
+    const currentQuantity = existingItem ? existingItem.quantity : 0;
+
+    // Validar que no se exceda el stock
+    if (currentQuantity >= product.stock) {
+      alert(`⚠️ No hay más stock disponible de "${product.name}". Stock actual: ${product.stock}`);
+      return;
+    }
+
     if (existingItem) {
       setCart(cart.map(item =>
         item.id === product.id
