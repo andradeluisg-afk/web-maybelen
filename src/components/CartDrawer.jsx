@@ -29,10 +29,17 @@ export default function CartDrawer() {
         cart.forEach((item, index) => {
             const itemPrice = item.price * (1 - (item.discount || 0) / 100);
             const subtotal = itemPrice * item.quantity;
+            const imageUrl = item.images && item.images.length > 0
+                ? item.images[0]
+                : (item.image || '');
+
             message += `\n${index + 1}. *${item.name}*\n`;
             message += `   Cantidad: ${item.quantity}\n`;
             message += `   Precio unit.: $${itemPrice.toFixed(2)}\n`;
             message += `   Subtotal: $${subtotal.toFixed(2)}\n`;
+            if (imageUrl) {
+                message += `   📷 Imagen: ${imageUrl}\n`;
+            }
         });
 
         message += `\n💰 *TOTAL: $${cartTotal.toFixed(2)}*\n\n`;
