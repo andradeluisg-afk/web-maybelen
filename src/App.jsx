@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { StoreProvider } from './context/StoreContext';
 import Navbar from './components/Navbar';
 import CartDrawer from './components/CartDrawer';
+import FloatingCartButton from './components/FloatingCartButton';
 import ProtectedRoute from './components/ProtectedRoute';
 import Footer from './components/Footer';
 
@@ -24,9 +25,9 @@ function App() {
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
           <Routes>
             {/* Public Routes */}
-            <Route path="/" element={<><Navbar /><Landing /></>} />
-            <Route path="/tienda" element={<><Navbar /><CartDrawer /><Store /></>} />
-            <Route path="/product/:id" element={<><Navbar /><CartDrawer /><ProductDetail /></>} />
+            <Route path="/" element={<><Navbar /><FloatingCartButton /><Landing /></>} />
+            <Route path="/tienda" element={<><Navbar /><CartDrawer /><FloatingCartButton /><Store /></>} />
+            <Route path="/product/:id" element={<><Navbar /><CartDrawer /><FloatingCartButton /><ProductDetail /></>} />
 
             {/* Info Pages */}
             <Route path="/originales" element={<><Navbar /><OriginalProducts /></>} />
