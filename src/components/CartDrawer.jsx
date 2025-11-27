@@ -4,9 +4,10 @@ import { X, Trash2, Minus, Plus, Send, ShoppingBag } from 'lucide-react';
 import { WHATSAPP_CONFIG } from '../config/whatsapp';
 
 export default function CartDrawer() {
-    const { cart, isCartOpen, setIsCartOpen, removeFromCart, updateCartQuantity, clearCart } = useStore();
+    const { cart, isCartOpen, setIsCartOpen, removeFromCart, updateCartQuantity, clearCart, createOrder } = useStore();
     const [showCheckout, setShowCheckout] = useState(false);
     const [customerName, setCustomerName] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     if (!isCartOpen) return null;
 
@@ -15,45 +16,52 @@ export default function CartDrawer() {
         return sum + (itemPrice * item.quantity);
     }, 0);
 
-    const handleCheckout = () => {
+    const handleCheckout = async () => {
         if (!customerName.trim()) {
             alert('Por favor ingresa tu nombre');
             return;
         }
 
-        // Generar mensaje para WhatsApp
-        let message = `🛍️ *NUEVO PEDIDO*\n\n`;
+        setIsSubmitting(true);
+
+        // 1. Guardar pedido en base de datos
+        const { success, orderId, error } = await createOrder(customerName);
+
+        if (!success) {
+            alert('Hubo un error guardando tu pedido. Por favor intenta de nuevo.');
+            console.error(error);
+            setIsSubmitting(false);
+            return;
+        }
+
+        // 2. Generar mensaje para WhatsApp con ID de pedido
+        let message = `🛍️ *NUEVO PEDIDO #${orderId}*\n\n`;
         message += `👤 *Cliente:* ${customerName}\n\n`;
         message += `📦 *Productos:*\n`;
 
         cart.forEach((item, index) => {
             const itemPrice = item.price * (1 - (item.discount || 0) / 100);
             const subtotal = itemPrice * item.quantity;
-            const imageUrl = item.images && item.images.length > 0
-                ? item.images[0]
-                : (item.image || '');
 
             message += `\n${index + 1}. *${item.name}*\n`;
             message += `   Cantidad: ${item.quantity}\n`;
             message += `   Precio unit.: $${itemPrice.toFixed(2)}\n`;
             message += `   Subtotal: $${subtotal.toFixed(2)}\n`;
-            if (imageUrl) {
-                message += `   📷 Imagen: ${imageUrl}\n`;
-            }
         });
 
         message += `\n💰 *TOTAL: $${cartTotal.toFixed(2)}*\n\n`;
-        message += `¡Hola! Me gustaría hacer este pedido. ¿Podrías confirmar la disponibilidad?`;
+        message += `¡Hola! Acabo de generar el pedido #${orderId} en la web. ¿Podrías confirmarme?`;
 
-        // Abrir WhatsApp con el mensaje
+        // 3. Abrir WhatsApp
         const encodedMessage = encodeURIComponent(message);
         window.open(`https://wa.me/${WHATSAPP_CONFIG.number}?text=${encodedMessage}`, '_blank');
 
-        // Limpiar carrito y cerrar
+        // 4. Limpiar y cerrar
         clearCart();
         setIsCartOpen(false);
         setShowCheckout(false);
         setCustomerName('');
+        setIsSubmitting(false);
     };
 
     return (
@@ -156,8 +164,9 @@ export default function CartDrawer() {
                                     className="btn btn-primary"
                                     style={{ flex: 2 }}
                                     onClick={handleCheckout}
+                                    disabled={isSubmitting}
                                 >
-                                    <Send size={18} /> Enviar Pedido
+                                    {isSubmitting ? 'Procesando...' : <><Send size={18} /> Enviar Pedido</>}
                                 </button>
                             </div>
                         </div>

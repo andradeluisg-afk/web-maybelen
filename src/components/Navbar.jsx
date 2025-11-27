@@ -170,6 +170,9 @@ export default function Navbar() {
                                 <Link to="/admin/dashboard" className="btn btn-secondary" style={{ borderRadius: '50px', padding: isScrolled ? '0.4rem 0.9rem' : '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: isScrolled ? '0.85rem' : '0.9rem', transition: 'all 0.3s ease' }}>
                                     <LayoutDashboard size={isScrolled ? 16 : 18} /> Panel
                                 </Link>
+                                <Link to="/admin/orders" className="btn btn-secondary" style={{ borderRadius: '50px', padding: isScrolled ? '0.4rem 0.9rem' : '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: isScrolled ? '0.85rem' : '0.9rem', transition: 'all 0.3s ease' }}>
+                                    <StoreIcon size={isScrolled ? 16 : 18} /> Pedidos
+                                </Link>
                                 <button onClick={handleLogout} className="btn btn-danger" style={{ borderRadius: '50px', padding: isScrolled ? '0.4rem 0.9rem' : '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: isScrolled ? '0.85rem' : '0.9rem', transition: 'all 0.3s ease' }}>
                                     <LogOut size={isScrolled ? 16 : 18} /> Salir
                                 </button>

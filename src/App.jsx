@@ -17,6 +17,7 @@ import CustomService from './pages/Info/CustomService';
 import AdminLogin from './pages/Admin/AdminLogin';
 import Inventory from './pages/Admin/Inventory';
 import CategoriesManager from './pages/Admin/CategoriesManager';
+import OrdersManager from './pages/Admin/OrdersManager';
 
 function App() {
   return (
@@ -41,6 +42,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <><Navbar /><Inventory /></>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/orders"
+              element={
+                <ProtectedRoute>
+                  <><Navbar /><OrdersManager /></>
                 </ProtectedRoute>
               }
             />

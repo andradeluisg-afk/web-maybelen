@@ -441,11 +441,18 @@ export const StoreProvider = ({ children }) => {
   const updateCartQuantity = (productId, quantity) => {
     if (quantity <= 0) {
       removeFromCart(productId);
-    } else {
-      setCart(cart.map(item =>
-        item.id === productId ? { ...item, quantity } : item
-      ));
+      return;
     }
+
+    const product = products.find(p => p.id === productId);
+    if (product && quantity > product.stock) {
+      alert(`⚠️ No puedes agregar más. Solo hay ${product.stock} unidades disponibles.`);
+      return;
+    }
+
+    setCart(cart.map(item =>
+      item.id === productId ? { ...item, quantity } : item
+    ));
   };
 
   const clearCart = () => {
@@ -494,6 +501,129 @@ export const StoreProvider = ({ children }) => {
     }
   };
 
+  // ===== ORDER MANAGEMENT =====
+  const createOrder = async (customerName, customerPhone = null) => {
+    try {
+      const total = cart.reduce((sum, item) => {
+        const itemPrice = item.price * (1 - (item.discount || 0) / 100);
+        return sum + (itemPrice * item.quantity);
+      }, 0);
+
+      // Crear orden
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          customer_name: customerName,
+          customer_phone: customerPhone,
+          total: total,
+          status: 'pending'
+        })
+        .select()
+        .single();
+
+      if (orderError) throw orderError;
+
+      // Crear items de la orden
+      const orderItems = cart.map(item => ({
+        order_id: order.id,
+        product_id: item.id,
+        product_name: item.name,
+        product_image: item.images && item.images.length > 0 ? item.images[0] : (item.image || null),
+        quantity: item.quantity,
+        unit_price: item.price * (1 - (item.discount || 0) / 100),
+        subtotal: (item.price * (1 - (item.discount || 0) / 100)) * item.quantity
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(orderItems);
+
+      if (itemsError) throw itemsError;
+
+      console.log(`✅ Pedido #${order.id} creado exitosamente`);
+      return { success: true, orderId: order.id };
+    } catch (error) {
+      console.error('Error creando pedido:', error);
+      return { success: false, error: error.message };
+    }
+  };
+
+  const getOrders = async (status = null) => {
+    try {
+      let query = supabase
+        .from('orders')
+        .select(`
+          *,
+          order_items (
+            *,
+            products (name, images:product_images(image_url))
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (status) {
+        query = query.eq('status', status);
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      return { success: true, orders: data };
+    } catch (error) {
+      console.error('Error obteniendo pedidos:', error);
+      return { success: false, error: error.message, orders: [] };
+    }
+  };
+
+  const updateOrderStatus = async (orderId, newStatus, reduceStock = false) => {
+    try {
+      // Actualizar status
+      const { error: updateError } = await supabase
+        .from('orders')
+        .update({ status: newStatus })
+        .eq('id', orderId);
+
+      if (updateError) throw updateError;
+
+      // Si se confirma el pedido, reducir stock
+      if (reduceStock && newStatus === 'confirmed') {
+        // Obtener items del pedido
+        const { data: orderItems, error: itemsError } = await supabase
+          .from('order_items')
+          .select('product_id, quantity')
+          .eq('order_id', orderId);
+
+        if (itemsError) throw itemsError;
+
+        // Reducir stock de cada producto
+        for (const item of orderItems) {
+          const { data: product } = await supabase
+            .from('products')
+            .select('stock')
+            .eq('id', item.product_id)
+            .single();
+
+          if (product) {
+            const newStock = Math.max(0, product.stock - item.quantity);
+            await supabase
+              .from('products')
+              .update({ stock: newStock })
+              .eq('id', item.product_id);
+          }
+        }
+
+        // Recargar productos
+        await loadInitialData();
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error actualizando estado del pedido:', error);
+      return { success: false, error: error.message };
+    }
+  };
+
   const value = {
     products,
     categories,
@@ -515,6 +645,9 @@ export const StoreProvider = ({ children }) => {
     removeFromCart,
     updateCartQuantity,
     clearCart,
+    createOrder,
+    getOrders,
+    updateOrderStatus,
     refreshData: loadInitialData
   };
 
